@@ -128,6 +128,148 @@
             margin: 5px 0;
             font-size: 1em;
         }
+
+        .settings-btn {
+            margin-top: 20px;
+            padding: 8px 20px;
+            font-size: 0.9em;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            font-size: 1.5em;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .setting-group {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .setting-group h3 {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .setting-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-item label {
+            flex: 1;
+        }
+
+        .setting-item input[type="number"] {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 8px;
+            font-size: 1em;
+            text-align: center;
+        }
+
+        .setting-item input[type="number"]:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .sound-options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .sound-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sound-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .sound-option.selected {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .sound-option button {
+            padding: 5px 15px;
+            font-size: 0.85em;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -155,6 +297,61 @@
 
         <div class="stats">
             <p>已完成番茄鐘: <strong id="completed">0</strong></p>
+            <button class="settings-btn" onclick="openSettings()">⚙️ 設定</button>
+        </div>
+    </div>
+
+    <!-- 設定視窗 -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>設定</h2>
+                <button class="close-btn" onclick="closeSettings()">×</button>
+            </div>
+
+            <div class="setting-group">
+                <h3>⏱️ 時間設定（分鐘）</h3>
+                <div class="setting-item">
+                    <label>工作時間</label>
+                    <input type="number" id="workDuration" min="1" max="60" value="25">
+                </div>
+                <div class="setting-item">
+                    <label>短休息</label>
+                    <input type="number" id="shortDuration" min="1" max="30" value="5">
+                </div>
+                <div class="setting-item">
+                    <label>長休息</label>
+                    <input type="number" id="longDuration" min="1" max="60" value="15">
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>🔔 音效選擇</h3>
+                <div class="sound-options">
+                    <div class="sound-option selected" onclick="selectSound('bell')">
+                        <span>🔔 鈴鐺聲</span>
+                        <button onclick="previewSound('bell', event)">試聽</button>
+                    </div>
+                    <div class="sound-option" onclick="selectSound('chime')">
+                        <span>🎵 風鈴聲</span>
+                        <button onclick="previewSound('chime', event)">試聽</button>
+                    </div>
+                    <div class="sound-option" onclick="selectSound('digital')">
+                        <span>⏰ 電子鬧鐘</span>
+                        <button onclick="previewSound('digital', event)">試聽</button>
+                    </div>
+                    <div class="sound-option" onclick="selectSound('soft')">
+                        <span>🎼 柔和提示</span>
+                        <button onclick="previewSound('soft', event)">試聽</button>
+                    </div>
+                    <div class="sound-option" onclick="selectSound('none')">
+                        <span>🔇 無音效</span>
+                        <button style="visibility: hidden;">試聽</button>
+                    </div>
+                </div>
+            </div>
+
+            <button style="width: 100%; margin-top: 20px;" onclick="saveSettings()">💾 儲存設定</button>
         </div>
     </div>
 
@@ -172,6 +369,160 @@
         let timerInterval = null;
         let isRunning = false;
         let completedPomodoros = 0;
+        let selectedSound = 'bell';
+
+        // 音效定義（使用 Web Audio API 生成）
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(soundType) {
+            if (soundType === 'none') return;
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            const now = audioContext.currentTime;
+            gainNode.gain.setValueAtTime(0.3, now);
+
+            switch(soundType) {
+                case 'bell':
+                    // 鈴鐺聲 - 清脆的高音
+                    oscillator.frequency.setValueAtTime(800, now);
+                    oscillator.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.5);
+                    break;
+
+                case 'chime':
+                    // 風鈴聲 - 多重音調
+                    const frequencies = [523.25, 659.25, 783.99];
+                    frequencies.forEach((freq, i) => {
+                        const osc = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioContext.destination);
+                        osc.frequency.setValueAtTime(freq, now + i * 0.1);
+                        gain.gain.setValueAtTime(0.2, now + i * 0.1);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.8);
+                        osc.start(now + i * 0.1);
+                        osc.stop(now + i * 0.1 + 0.8);
+                    });
+                    return;
+
+                case 'digital':
+                    // 電子鬧鐘 - 方波
+                    oscillator.type = 'square';
+                    oscillator.frequency.setValueAtTime(440, now);
+                    gainNode.gain.setValueAtTime(0.2, now);
+                    
+                    for(let i = 0; i < 3; i++) {
+                        gainNode.gain.setValueAtTime(0.2, now + i * 0.2);
+                        gainNode.gain.setValueAtTime(0, now + i * 0.2 + 0.1);
+                    }
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.6);
+                    break;
+
+                case 'soft':
+                    // 柔和提示 - 正弦波
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(440, now);
+                    oscillator.frequency.exponentialRampToValueAtTime(550, now + 0.3);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.8);
+                    break;
+            }
+        }
+
+        // 載入儲存的設定
+        function loadSettings() {
+            const saved = localStorage.getItem('pomodoroSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                modes.work.duration = settings.workDuration * 60;
+                modes.short.duration = settings.shortDuration * 60;
+                modes.long.duration = settings.longDuration * 60;
+                selectedSound = settings.sound || 'bell';
+
+                document.getElementById('workDuration').value = settings.workDuration;
+                document.getElementById('shortDuration').value = settings.shortDuration;
+                document.getElementById('longDuration').value = settings.longDuration;
+
+                // 更新音效選擇
+                document.querySelectorAll('.sound-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                document.querySelector(`.sound-option[onclick*="${selectedSound}"]`)?.classList.add('selected');
+            }
+
+            const savedCompleted = localStorage.getItem('completedPomodoros');
+            if (savedCompleted) {
+                completedPomodoros = parseInt(savedCompleted);
+                document.getElementById('completed').textContent = completedPomodoros;
+            }
+        }
+
+        // 開啟設定視窗
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('active');
+        }
+
+        // 關閉設定視窗
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+
+        // 選擇音效
+        function selectSound(sound) {
+            selectedSound = sound;
+            document.querySelectorAll('.sound-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        // 試聽音效
+        function previewSound(sound, event) {
+            event.stopPropagation();
+            playSound(sound);
+        }
+
+        // 儲存設定
+        function saveSettings() {
+            const workDuration = parseInt(document.getElementById('workDuration').value);
+            const shortDuration = parseInt(document.getElementById('shortDuration').value);
+            const longDuration = parseInt(document.getElementById('longDuration').value);
+
+            if (workDuration < 1 || shortDuration < 1 || longDuration < 1) {
+                alert('時間必須大於 0 分鐘！');
+                return;
+            }
+
+            modes.work.duration = workDuration * 60;
+            modes.short.duration = shortDuration * 60;
+            modes.long.duration = longDuration * 60;
+
+            localStorage.setItem('pomodoroSettings', JSON.stringify({
+                workDuration,
+                shortDuration,
+                longDuration,
+                sound: selectedSound
+            }));
+
+            // 如果當前沒有在運行，更新時間顯示
+            if (!isRunning) {
+                timeLeft = modes[currentMode].duration;
+                totalTime = modes[currentMode].duration;
+                updateDisplay();
+            }
+
+            closeSettings();
+            alert('設定已儲存！');
+        }
 
         // 更新顯示
         function updateDisplay() {
@@ -249,13 +600,17 @@
             if (currentMode === 'work') {
                 completedPomodoros++;
                 document.getElementById('completed').textContent = completedPomodoros;
+                localStorage.setItem('completedPomodoros', completedPomodoros);
             }
 
             document.getElementById('status').textContent = `${modes[currentMode].label}完成！`;
             document.getElementById('startBtn').disabled = false;
             document.getElementById('pauseBtn').disabled = true;
 
-            // 播放提示音（可選）
+            // 播放音效
+            playSound(selectedSound);
+
+            // 桌面通知
             if ('Notification' in window && Notification.permission === 'granted') {
                 new Notification('番茄鐘', {
                     body: `${modes[currentMode].label}已完成！`,
@@ -269,7 +624,10 @@
             Notification.requestPermission();
         }
 
-        // 初始化顯示
+        // 初始化
+        loadSettings();
+        timeLeft = modes[currentMode].duration;
+        totalTime = modes[currentMode].duration;
         updateDisplay();
     </script>
 </body>
