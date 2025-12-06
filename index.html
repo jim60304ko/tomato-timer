@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>番茄鐘 - Pomodoro Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            min-width: 350px;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .timer-display {
+            font-size: 5em;
+            font-weight: bold;
+            margin: 30px 0;
+            font-family: 'Courier New', monospace;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .status {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 12px 30px;
+            font-size: 1em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            padding: 8px 20px;
+            font-size: 0.9em;
+        }
+
+        .mode-btn.active {
+            background: rgba(255, 255, 255, 0.4);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .stats {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .stats p {
+            margin: 5px 0;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍅 番茄鐘</h1>
+        
+        <div class="mode-selector">
+            <button class="mode-btn active" onclick="setMode('work')">工作</button>
+            <button class="mode-btn" onclick="setMode('short')">短休息</button>
+            <button class="mode-btn" onclick="setMode('long')">長休息</button>
+        </div>
+
+        <div class="status" id="status">準備開始工作</div>
+        <div class="timer-display" id="timer">25:00</div>
+
+        <div class="buttons">
+            <button id="startBtn" onclick="startTimer()">開始</button>
+            <button id="pauseBtn" onclick="pauseTimer()" disabled>暫停</button>
+            <button id="resetBtn" onclick="resetTimer()">重置</button>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+
+        <div class="stats">
+            <p>已完成番茄鐘: <strong id="completed">0</strong></p>
+        </div>
+    </div>
+
+    <script>
+        // 設定變數
+        const modes = {
+            work: { duration: 25 * 60, label: '工作時間' },
+            short: { duration: 5 * 60, label: '短休息' },
+            long: { duration: 15 * 60, label: '長休息' }
+        };
+
+        let currentMode = 'work';
+        let timeLeft = modes[currentMode].duration;
+        let totalTime = modes[currentMode].duration;
+        let timerInterval = null;
+        let isRunning = false;
+        let completedPomodoros = 0;
+
+        // 更新顯示
+        function updateDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            const progress = ((totalTime - timeLeft) / totalTime) * 100;
+            document.getElementById('progress').style.width = `${progress}%`;
+        }
+
+        // 設定模式
+        function setMode(mode) {
+            if (isRunning) return;
+            
+            currentMode = mode;
+            timeLeft = modes[mode].duration;
+            totalTime = modes[mode].duration;
+            document.getElementById('status').textContent = `準備開始 ${modes[mode].label}`;
+            updateDisplay();
+
+            // 更新按鈕樣式
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // 開始計時
+        function startTimer() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('pauseBtn').disabled = false;
+            document.getElementById('status').textContent = `${modes[currentMode].label}中...`;
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+
+                if (timeLeft === 0) {
+                    completeTimer();
+                }
+            }, 1000);
+        }
+
+        // 暫停計時
+        function pauseTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+            document.getElementById('status').textContent = `${modes[currentMode].label} - 已暫停`;
+        }
+
+        // 重置計時
+        function resetTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            timeLeft = modes[currentMode].duration;
+            totalTime = modes[currentMode].duration;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+            document.getElementById('status').textContent = `準備開始 ${modes[currentMode].label}`;
+            updateDisplay();
+        }
+
+        // 完成計時
+        function completeTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            
+            if (currentMode === 'work') {
+                completedPomodoros++;
+                document.getElementById('completed').textContent = completedPomodoros;
+            }
+
+            document.getElementById('status').textContent = `${modes[currentMode].label}完成！`;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+
+            // 播放提示音（可選）
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('番茄鐘', {
+                    body: `${modes[currentMode].label}已完成！`,
+                    icon: '🍅'
+                });
+            }
+        }
+
+        // 請求通知權限
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // 初始化顯示
+        updateDisplay();
+    </script>
+</body>
+</html>
